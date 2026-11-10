@@ -39,7 +39,7 @@ The complete stack is kept in [`blueprints/render.full.yaml`](blueprints/render.
 - `mydatasign-db`: a managed PostgreSQL database
 - `mydatasign-demo`: the static demo
 
-It also generates `SESSION_SECRET` and `DATA_ENCRYPTION_KEY`. To use it, free up room under Render's workspace limit of 25 services and databases. Then create a Blueprint and set its path to `blueprints/render.full.yaml`. The code as it was before the switch to demo-only is also tagged `stash/full-blueprint`.
+It also generates `SESSION_SECRET` and `DATA_ENCRYPTION_KEY`. To use it, free up room under Render's workspace limit of 25 services and databases. Then create a Blueprint and set its path to `blueprints/render.full.yaml`. The code as it was before the switch to demo-only is commit `0a501b0` on this branch.
 
 > **Back up `DATA_ENCRYPTION_KEY`.** It encrypts every data package and every seller's private signing key. If it is lost, the stored data cannot be recovered.
 
