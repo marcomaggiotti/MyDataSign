@@ -1,0 +1,75 @@
+<%- include('partials/head') %>
+
+<section class="hero">
+  <h1>Sell your data. Signed, secure, on your terms.</h1>
+  <p>Companies and individuals publish data packages by topic and area, set their own price for each license,
+    and every package is encrypted and cryptographically signed by its seller.</p>
+</section>
+
+<div class="topic-strip">
+  <a class="chip <%= !filters.topic ? 'active' : '' %>" href="/?<%= new URLSearchParams({ ...filters, topic: '', page: '' }).toString() %>">All topics</a>
+  <% topics.forEach(function (t) { %>
+    <a class="chip <%= filters.topic === t.slug ? 'active' : '' %>"
+       href="/?<%= new URLSearchParams({ ...filters, topic: t.slug, page: '' }).toString() %>">
+      <%= t.name %> <span class="count"><%= topicCounts[t.slug] || 0 %></span>
+    </a>
+  <% }) %>
+</div>
+
+<div class="browse">
+  <form class="filters panel" method="get" action="/">
+    <input type="hidden" name="topic" value="<%= filters.topic %>">
+    <label>Search
+      <input type="search" name="q" value="<%= filters.q %>" placeholder="e.g. step counts, energy usage">
+    </label>
+    <label>Area
+      <select name="area">
+        <option value="">Any area</option>
+        <% ['global', 'region', 'country'].forEach(function (kind) { %>
+          <optgroup label="<%= kind === 'global' ? 'Global' : kind === 'region' ? 'Regions' : 'Countries' %>">
+            <% areas.filter(function (a) { return a.kind === kind; }).forEach(function (a) { %>
+              <option value="<%= a.slug %>" <%= filters.area === a.slug ? 'selected' : '' %>><%= a.name %></option>
+            <% }) %>
+          </optgroup>
+        <% }) %>
+      </select>
+    </label>
+    <label>Seller
+      <select name="seller">
+        <option value="">Companies &amp; individuals</option>
+        <option value="company" <%= filters.seller === 'company' ? 'selected' : '' %>>Companies only</option>
+        <option value="individual" <%= filters.seller === 'individual' ? 'selected' : '' %>>Individuals only</option>
+      </select>
+    </label>
+    <label>Max starting price
+      <input type="text" inputmode="decimal" name="max_price" value="<%= filters.max_price %>" placeholder="any">
+    </label>
+    <label>Sort
+      <select name="sort">
+        <option value="newest" <%= filters.sort === 'newest' ? 'selected' : '' %>>Newest</option>
+        <option value="price_asc" <%= filters.sort === 'price_asc' ? 'selected' : '' %>>Price: low to high</option>
+        <option value="price_desc" <%= filters.sort === 'price_desc' ? 'selected' : '' %>>Price: high to low</option>
+      </select>
+    </label>
+    <button class="btn" type="submit">Apply filters</button>
+  </form>
+
+  <section>
+    <% if (listings.length === 0) { %>
+      <div class="empty panel">
+        <h2>No data packages match yet</h2>
+        <p class="muted">Try another topic or area — or be the first to <a href="/listings/new">sell data here</a>.</p>
+      </div>
+    <% } else { %>
+      <div class="grid">
+        <% listings.forEach(function (l) { %><%- include('partials/card', { l: l }) %><% }) %>
+      </div>
+      <div class="pager">
+        <% if (page > 1) { %><a class="btn btn-ghost" href="/?<%= new URLSearchParams({ ...filters, page: page - 1 }).toString() %>">← Previous</a><% } %>
+        <% if (hasMore) { %><a class="btn btn-ghost" href="/?<%= new URLSearchParams({ ...filters, page: page + 1 }).toString() %>">Next →</a><% } %>
+      </div>
+    <% } %>
+  </section>
+</div>
+
+<%- include('partials/foot') %>

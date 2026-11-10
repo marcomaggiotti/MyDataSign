@@ -1,0 +1,43 @@
+# Render Blueprint for MyDataSign.
+# Deploy: Render Dashboard → New → Blueprint → select this repository.
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: mydatasign
+    runtime: node
+    plan: starter
+    region: frankfurt
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mydatasign-db
+          property: connectionString
+      # Signs session cookies. Generated once by Render.
+      - key: SESSION_SECRET
+        generateValue: true
+      # Master key for AES-256-GCM encryption of data packages and seller private keys.
+      # Generated once by Render. Back it up: if it is lost, stored data cannot be decrypted.
+      - key: DATA_ENCRYPTION_KEY
+        generateValue: true
+      - key: PLATFORM_FEE_PERCENT
+        value: "10"
+      - key: MAX_UPLOAD_BYTES
+        value: "5242880"
+
+databases:
+  - name: mydatasign-db
+    databaseName: mydatasign
+    user: mydatasign
+    plan: basic-256mb
+    region: frankfurt
+    # Only the web service (private network) can reach the database.
+    ipAllowList: []

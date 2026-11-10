@@ -1,0 +1,17 @@
+<a class="card" href="/listings/<%= l.id %>">
+  <div class="card-tags">
+    <span class="tag tag-topic"><%= l.topic_name %></span>
+    <span class="tag tag-area"><%= l.area_name %></span>
+  </div>
+  <h3><%= l.title %></h3>
+  <p class="muted"><%= l.summary %></p>
+  <div class="card-foot">
+    <span class="seller">
+      <span class="badge badge-<%= l.account_type %>"><%= l.account_type === 'company' ? 'Company' : 'Individual' %></span>
+      <%= l.company_name || l.display_name %>
+    </span>
+    <span class="price">
+      <% if (l.min_price !== null && l.min_price !== undefined) { %>from <strong><%= h.formatMoney(l.min_price, l.currency) %></strong><% } %>
+    </span>
+  </div>
+</a>

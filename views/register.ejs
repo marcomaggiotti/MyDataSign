@@ -1,0 +1,26 @@
+<%- include('partials/head') %>
+
+<div class="narrow">
+  <h1>Create your account</h1>
+  <p class="muted">One account to buy and sell. We generate a personal signing key for you on sign-up.</p>
+  <% if (error) { %><div class="flash flash-error"><%= error %></div><% } %>
+  <form class="panel form-stack" method="post" action="/register">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="segmented" role="radiogroup" aria-label="Account type">
+      <label><input type="radio" name="account_type" value="individual" <%= values.account_type !== 'company' ? 'checked' : '' %>> Individual</label>
+      <label><input type="radio" name="account_type" value="company" <%= values.account_type === 'company' ? 'checked' : '' %>> Company</label>
+    </div>
+    <label>Your name <input name="display_name" required maxlength="80" value="<%= values.display_name || '' %>"></label>
+    <div class="company-only">
+      <label>Company name <input name="company_name" maxlength="120" value="<%= values.company_name || '' %>"></label>
+      <label>VAT / company ID <span class="muted">(optional)</span> <input name="vat_id" maxlength="40" value="<%= values.vat_id || '' %>"></label>
+    </div>
+    <label>Email <input type="email" name="email" required autocomplete="email" value="<%= values.email || '' %>"></label>
+    <label>Password <span class="muted">(10+ characters)</span> <input type="password" name="password" required minlength="10" autocomplete="new-password"></label>
+    <label class="check"><input type="checkbox" name="terms" value="1"> I will only sell data I own or have consent to sell.</label>
+    <button class="btn btn-block" type="submit">Create account</button>
+  </form>
+  <p class="muted center">Already registered? <a href="/login">Sign in</a></p>
+</div>
+
+<%- include('partials/foot') %>

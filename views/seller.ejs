@@ -1,0 +1,27 @@
+<%- include('partials/head') %>
+
+<div class="page-head">
+  <div>
+    <h1><%= seller.company_name || seller.display_name %></h1>
+    <p class="muted">
+      <span class="badge badge-<%= seller.account_type %>"><%= seller.account_type === 'company' ? 'Company' : 'Individual' %></span>
+      <% if (seller.vat_id) { %>· VAT <%= seller.vat_id %><% } %>
+      · Member since <%= seller.created_at.toISOString().slice(0, 10) %>
+    </p>
+  </div>
+</div>
+
+<section class="panel">
+  <h2>Signing key</h2>
+  <p>Fingerprint <code><%= fingerprint %></code> — every package from this seller is signed with this Ed25519 key.</p>
+  <details><summary>Public key (PEM)</summary><pre class="sample"><%= seller.public_key %></pre></details>
+</section>
+
+<h2>Data packages</h2>
+<% if (!listings.length) { %>
+  <p class="muted">No published listings.</p>
+<% } else { %>
+  <div class="grid"><% listings.forEach(function (l) { %><%- include('partials/card', { l: l }) %><% }) %></div>
+<% } %>
+
+<%- include('partials/foot') %>

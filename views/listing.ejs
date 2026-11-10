@@ -1,0 +1,91 @@
+<%- include('partials/head') %>
+
+<div class="listing-layout">
+  <article>
+    <div class="card-tags">
+      <a class="tag tag-topic" href="/?topic=<%= listing.topic_slug %>"><%= listing.topic_name %></a>
+      <a class="tag tag-area" href="/?area=<%= listing.area_slug %>"><%= listing.area_name %></a>
+      <% if (listing.status !== 'published') { %><span class="tag tag-status"><%= listing.status.replace('_', ' ') %></span><% } %>
+    </div>
+    <h1><%= listing.title %></h1>
+    <p class="lead"><%= listing.summary %></p>
+    <p class="seller-line">
+      Sold by <a href="/sellers/<%= listing.seller_id %>"><%= listing.company_name || listing.display_name %></a>
+      <span class="badge badge-<%= listing.account_type %>"><%= listing.account_type === 'company' ? 'Company' : 'Individual' %></span>
+    </p>
+
+    <% if (listing.description) { %>
+      <h2>About this data</h2>
+      <div class="prose"><% listing.description.split(/\n{2,}/).forEach(function (para) { %><p><%= para %></p><% }) %></div>
+    <% } %>
+
+    <% if (listing.fields && listing.fields.length) { %>
+      <h2>Fields</h2>
+      <table class="table">
+        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+          <% listing.fields.forEach(function (f) { %>
+            <tr><td><code><%= f.name %></code></td><td><%= f.type %></td><td><%= f.description %></td></tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+
+    <% if (listing.sample) { %>
+      <h2>Free sample</h2>
+      <pre class="sample"><%= listing.sample %></pre>
+    <% } %>
+
+    <h2>Authenticity</h2>
+    <dl class="facts">
+      <dt>Format</dt><dd><%= listing.data_format.toUpperCase() %> · <%= h.formatBytes(listing.size_bytes) %></dd>
+      <dt>SHA-256</dt><dd><code class="wrap-anywhere"><%= listing.data_sha256 || 'not uploaded yet' %></code></dd>
+      <dt>Seller key</dt><dd><code><%= fingerprint %></code> (Ed25519)</dd>
+      <dt>Sales</dt><dd><%= listing.sales %><%= listing.max_sales ? ' of ' + listing.max_sales : '' %></dd>
+    </dl>
+  </article>
+
+  <aside class="panel buy-box">
+    <h2>Licenses</h2>
+    <% if (isOwner) { %>
+      <p class="muted">This is your listing.</p>
+      <a class="btn" href="/listings/<%= listing.id %>/edit">Edit listing</a>
+    <% } else if (prices.length === 0) { %>
+      <p class="muted">No prices set yet.</p>
+    <% } else { %>
+      <% if (myOrders.length) { %>
+        <div class="owned">
+          <% myOrders.forEach(function (o) { %>
+            <a href="/orders/<%= o.id %>">✓ You own the <%= h.LICENSES[o.license].label %> license — download</a>
+          <% }) %>
+        </div>
+      <% } %>
+      <form method="post" action="/listings/<%= listing.id %>/buy">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <% prices.forEach(function (p, i) {
+             var exclusiveClosed = p.license === 'exclusive' && listing.sales > 0; %>
+          <label class="license <%= exclusiveClosed ? 'disabled' : '' %>">
+            <input type="radio" name="license" value="<%= p.license %>" <%= i === 0 && !exclusiveClosed ? 'checked' : '' %> <%= exclusiveClosed ? 'disabled' : '' %>>
+            <span class="license-body">
+              <strong><%= h.LICENSES[p.license].label %></strong>
+              <span class="muted"><%= exclusiveClosed ? 'No longer available — already sold.' : h.LICENSES[p.license].description %></span>
+            </span>
+            <span class="license-price"><%= h.formatMoney(p.price_cents, p.currency) %></span>
+          </label>
+        <% }) %>
+        <% if (listing.status === 'published') { %>
+          <% if (currentUser) { %>
+            <button class="btn btn-block" type="submit">Buy signed package</button>
+          <% } else { %>
+            <a class="btn btn-block" href="/login">Sign in to buy</a>
+          <% } %>
+          <p class="fine">Demo checkout: no card is charged. Connect Stripe to take real payments.</p>
+        <% } else { %>
+          <p class="muted">This listing is not currently for sale.</p>
+        <% } %>
+      </form>
+    <% } %>
+  </aside>
+</div>
+
+<%- include('partials/foot') %>
