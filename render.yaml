@@ -1,39 +1,11 @@
-# Render Blueprint for MyDataSign.
+# Render Blueprint for MyDataSign: demo only.
+# Creates ONE free static site with sample data. It needs no database and no keys.
 # Deploy: Render Dashboard → New → Blueprint → select this repository.
-# Docs: https://render.com/docs/blueprint-spec
+#
+# The full marketplace (web service + PostgreSQL + demo) is kept in
+# blueprints/render.full.yaml. To use it, set the Blueprint path to that file in Render.
 
 services:
-  - type: web
-    name: mydatasign
-    runtime: node
-    plan: starter
-    region: frankfurt
-    buildCommand: npm ci --omit=dev
-    startCommand: npm start
-    healthCheckPath: /healthz
-    autoDeploy: true
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: NODE_VERSION
-        value: "22"
-      - key: DATABASE_URL
-        fromDatabase:
-          name: mydatasign-db
-          property: connectionString
-      # Signs session cookies. Generated once by Render.
-      - key: SESSION_SECRET
-        generateValue: true
-      # Master key for AES-256-GCM encryption of data packages and seller private keys.
-      # Generated once by Render. Back it up: if it is lost, stored data cannot be decrypted.
-      - key: DATA_ENCRYPTION_KEY
-        generateValue: true
-      - key: PLATFORM_FEE_PERCENT
-        value: "10"
-      - key: MAX_UPLOAD_BYTES
-        value: "5242880"
-
-  # Read-only demo with sample data: a free static site, no database and no keys.
   - type: web
     name: mydatasign-demo
     runtime: static
@@ -48,12 +20,3 @@ services:
       - path: /*
         name: X-Frame-Options
         value: DENY
-
-databases:
-  - name: mydatasign-db
-    databaseName: mydatasign
-    user: mydatasign
-    plan: basic-256mb
-    region: frankfurt
-    # Only the web service (private network) can reach the database.
-    ipAllowList: []
