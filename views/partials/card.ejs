@@ -1,4 +1,4 @@
-<a class="card" href="/listings/<%= l.id %>">
+<a class="card" href="/listings/<%= l.id %>" data-topic="<%= l.topic_slug %>" data-area="<%= l.area_slug %>" data-seller="<%= l.account_type %>" data-price="<%= l.min_price === null || l.min_price === undefined ? '' : l.min_price %>" data-created="<%= new Date(l.created_at).getTime() %>" data-text="<%= (l.title + ' ' + l.summary).toLowerCase() %>">
   <div class="card-tags">
     <span class="tag tag-topic"><%= l.topic_name %></span>
     <span class="tag tag-area"><%= l.area_name %></span>

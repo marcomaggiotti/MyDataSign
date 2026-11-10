@@ -33,6 +33,22 @@ services:
       - key: MAX_UPLOAD_BYTES
         value: "5242880"
 
+  # Read-only demo with sample data: a free static site, no database and no keys.
+  - type: web
+    name: mydatasign-demo
+    runtime: static
+    buildCommand: npm ci && npm run build:demo
+    staticPublishPath: ./demo-dist
+    autoDeploy: true
+    routes:
+      - type: rewrite
+        source: /
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+
 databases:
   - name: mydatasign-db
     databaseName: mydatasign

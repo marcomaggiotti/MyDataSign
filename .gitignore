@@ -222,3 +222,4 @@ __marimo__/
 # Dependencies
 node_modules/
 .env
+demo-dist/
