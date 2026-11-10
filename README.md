@@ -8,14 +8,38 @@ A marketplace where **companies and individuals sell their own data**. Every dat
 - **Signed**: each seller gets an Ed25519 key pair when they sign up. Each package's SHA-256 is signed in a manifest tied to the listing and the seller, and anyone can check a downloaded bundle on `/verify`.
 - **Classified**: by **topic** (Health, Finance, Mobility, Energy and more) and **area** (Global, regions, countries). Buyers can filter by topic, area, seller type and price.
 
+## Demo (no database, no keys)
+
+A read-only demo with sample sellers and listings, built from the real templates:
+
+```bash
+npm run build:demo
+```
+
+This writes static pages to `demo-dist/`. Open `demo-dist/index.html` in a browser, or serve the folder with any static host. In the demo:
+
+- topic, area, seller and price filters work in the browser
+- **Buy** opens an order page with real downloadable bundles, signed with demo keys created at build time
+- forms that would save something show a "nothing is saved" notice
+
+The default blueprint deploys this demo as the free static site `mydatasign-demo`.
+
 ## Deploy on Render (Blueprint)
 
-1. Push this repository to GitHub.
-2. In Render, go to **New → Blueprint** and pick the repository. Render reads `render.yaml` and creates:
-   - `mydatasign`: a Node web service with a health check on `/healthz`
-   - `mydatasign-db`: a managed PostgreSQL database
-   - `SESSION_SECRET` and `DATA_ENCRYPTION_KEY`, generated automatically
-3. Click **Apply**. Tables and the topic/area catalogue are created when the app starts.
+`render.yaml` deploys **only the demo**: one free static site, `mydatasign-demo`, with no database and no keys.
+
+1. In Render, go to **New → Blueprint** and pick this repository.
+2. Click **Apply**. Render runs `npm run build:demo` and serves `demo-dist/`.
+
+### Full marketplace (saved for later)
+
+The complete stack is kept in [`blueprints/render.full.yaml`](blueprints/render.full.yaml). It creates 3 resources:
+
+- `mydatasign`: a Node web service with a health check on `/healthz`
+- `mydatasign-db`: a managed PostgreSQL database
+- `mydatasign-demo`: the static demo
+
+It also generates `SESSION_SECRET` and `DATA_ENCRYPTION_KEY`. To use it, free up room under Render's workspace limit of 25 services and databases. Then create a Blueprint and set its path to `blueprints/render.full.yaml`. The code as it was before the switch to demo-only is commit `0a501b0` on this branch.
 
 > **Back up `DATA_ENCRYPTION_KEY`.** It encrypts every data package and every seller's private signing key. If it is lost, the stored data cannot be recovered.
 

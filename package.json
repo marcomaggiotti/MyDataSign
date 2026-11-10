@@ -8,6 +8,7 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "migrate": "node src/migrate.js",
+    "build:demo": "node scripts/build-demo.js",
     "test": "node --test test/*.test.js"
   },
   "engines": {

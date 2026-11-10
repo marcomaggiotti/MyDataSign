@@ -133,7 +133,7 @@ async function migrate() {
   }
 }
 
-module.exports = { migrate };
+module.exports = { migrate, TOPICS, AREAS };
 
 if (require.main === module) {
   migrate()

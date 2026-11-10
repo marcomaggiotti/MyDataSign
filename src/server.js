@@ -63,6 +63,7 @@ function createApp() {
   app.locals.h = helpers;
   app.locals.appName = 'MyDataSign';
   app.locals.maxUploadBytes = config.maxUploadBytes;
+  app.locals.demo = false;
 
   app.use(loadUser);
   app.use(csrfProtection);
