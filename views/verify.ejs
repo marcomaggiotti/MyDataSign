@@ -1,0 +1,29 @@
+<%- include('partials/head') %>
+
+<div class="narrow">
+  <h1>Verify a data package</h1>
+  <p class="muted">Upload a <code>.signed.json</code> bundle downloaded from MyDataSign. We recompute the SHA-256 of the data,
+    check the seller's Ed25519 signature and confirm the key belongs to that seller.</p>
+
+  <% if (error) { %><div class="flash flash-error"><%= error %></div><% } %>
+
+  <form class="panel form-stack" method="post" action="/verify" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <label>Bundle file <input type="file" name="bundle" accept=".json,application/json" required></label>
+    <button class="btn" type="submit">Verify</button>
+  </form>
+
+  <% if (result) { %>
+    <section class="panel verdict <%= result.valid ? 'verdict-ok' : 'verdict-bad' %>">
+      <h2><%= result.valid ? '✓ Authentic and unmodified' : '✗ Verification failed' %></h2>
+      <ul class="checks">
+        <% result.checks.forEach(function (c) { %>
+          <li class="<%= c.ok ? 'ok' : 'bad' %>"><strong><%= c.ok ? '✓' : '✗' %> <%= c.label %></strong>
+            <code class="wrap-anywhere"><%= c.detail %></code></li>
+        <% }) %>
+      </ul>
+    </section>
+  <% } %>
+</div>
+
+<%- include('partials/foot') %>

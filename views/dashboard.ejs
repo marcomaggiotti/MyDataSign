@@ -1,0 +1,63 @@
+<%- include('partials/head') %>
+
+<div class="page-head">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="muted"><%= currentUser.company_name || currentUser.display_name %> ·
+      <span class="badge badge-<%= currentUser.account_type %>"><%= currentUser.account_type === 'company' ? 'Company' : 'Individual' %></span>
+      · <a href="/sellers/<%= currentUser.id %>">Public profile</a></p>
+  </div>
+  <a class="btn" href="/listings/new">+ New listing</a>
+</div>
+
+<section class="panel">
+  <h2>My listings</h2>
+  <% if (!listings.length) { %>
+    <p class="muted">You have not listed any data yet. <a href="/listings/new">Create your first listing</a>.</p>
+  <% } else { %>
+    <div class="table-scroll">
+    <table class="table">
+      <thead><tr><th>Title</th><th>Topic · Area</th><th>Status</th><th>Sales</th><th>Net revenue</th><th></th></tr></thead>
+      <tbody>
+        <% listings.forEach(function (l) { %>
+          <tr>
+            <td><a href="/listings/<%= l.id %>"><%= l.title %></a></td>
+            <td class="muted"><%= l.topic_name %> · <%= l.area_name %></td>
+            <td><span class="tag tag-status status-<%= l.status %>"><%= l.status.replace('_', ' ') %></span></td>
+            <td><%= l.sales %></td>
+            <td><%= l.sales ? h.formatMoney(l.revenue, l.currency) : '—' %></td>
+            <td><a href="/listings/<%= l.id %>/edit">Edit</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    </div>
+  <% } %>
+</section>
+
+<div class="two-col">
+  <section class="panel">
+    <h2>Recent sales</h2>
+    <% if (!sales.length) { %><p class="muted">No sales yet.</p><% } else { %>
+      <ul class="list">
+        <% sales.forEach(function (s) { %>
+          <li><strong><%= s.title %></strong> — <%= h.LICENSES[s.license].label %> to <%= s.buyer %>
+            <span class="muted">· <%= h.formatMoney(s.price_cents - s.fee_cents, s.currency) %> net · <%= s.created_at.toISOString().slice(0, 10) %></span></li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </section>
+  <section class="panel">
+    <h2>My purchases</h2>
+    <% if (!purchases.length) { %><p class="muted">Nothing bought yet. <a href="/">Browse data</a>.</p><% } else { %>
+      <ul class="list">
+        <% purchases.forEach(function (p) { %>
+          <li><a href="/orders/<%= p.id %>"><%= p.title %></a>
+            <span class="muted">· <%= h.LICENSES[p.license].label %> · <%= h.formatMoney(p.price_cents, p.currency) %></span></li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </section>
+</div>
+
+<%- include('partials/foot') %>

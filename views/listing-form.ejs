@@ -1,0 +1,131 @@
+<%- include('partials/head') %>
+
+<div class="page-head">
+  <div>
+    <h1><%= listing ? 'Edit listing' : 'Sell a data package' %></h1>
+    <% if (listing) { %>
+      <p class="muted">Status: <span class="tag tag-status"><%= listing.status.replace('_', ' ') %></span>
+        · <%= listing.sales %> sale<%= listing.sales === 1 ? '' : 's' %>
+        · <a href="/listings/<%= listing.id %>">View public page</a></p>
+    <% } %>
+  </div>
+  <% if (listing) { %>
+    <form method="post" action="/listings/<%= listing.id %>/status" class="status-actions">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <% if (listing.status === 'draft' || listing.status === 'archived') { %>
+        <button class="btn" name="action" value="publish">Publish</button>
+      <% } else if (listing.status === 'published') { %>
+        <button class="btn btn-ghost" name="action" value="unpublish">Unpublish</button>
+      <% } %>
+      <% if (listing.status !== 'archived') { %>
+        <button class="btn btn-ghost" name="action" value="archive">Archive</button>
+      <% } %>
+    </form>
+  <% } %>
+</div>
+
+<% if (errors.length) { %>
+  <div class="flash flash-error"><ul><% errors.forEach(function (e) { %><li><%= e %></li><% }) %></ul></div>
+<% } %>
+
+<form method="post" action="<%= listing ? '/listings/' + listing.id : '/listings' %>" enctype="multipart/form-data" class="form-stack">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+  <fieldset class="panel">
+    <legend>1 · Describe it</legend>
+    <label>Title <input name="title" required maxlength="140" value="<%= values.title || '' %>" placeholder="Daily step counts, 2024–2025"></label>
+    <label>Short summary <input name="summary" required maxlength="280" value="<%= values.summary || '' %>" placeholder="One sentence buyers see in search results"></label>
+    <label>Full description <textarea name="description" rows="5" maxlength="10000" placeholder="How it was collected, coverage, update frequency, anonymisation…"><%= values.description || '' %></textarea></label>
+    <div class="row">
+      <label>Topic
+        <select name="topic_id" required>
+          <option value="">Choose a topic</option>
+          <% topics.forEach(function (t) { %><option value="<%= t.id %>" <%= Number(values.topic_id) === t.id ? 'selected' : '' %>><%= t.name %></option><% }) %>
+        </select>
+      </label>
+      <label>Area
+        <select name="area_id" required>
+          <option value="">Choose an area</option>
+          <% areas.forEach(function (a) { %><option value="<%= a.id %>" <%= Number(values.area_id) === a.id ? 'selected' : '' %>><%= a.kind === 'country' ? '— ' : '' %><%= a.name %></option><% }) %>
+        </select>
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset class="panel">
+    <legend>2 · Customise the schema</legend>
+    <p class="muted">List the fields buyers will receive. This is shown publicly; the data itself is not.</p>
+    <table class="table fields-table">
+      <thead><tr><th>Field name</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody id="field-rows">
+        <% var rows = (values.fields && values.fields.length ? values.fields : []).concat([{}, {}]);
+           rows.forEach(function (f) { %>
+          <tr>
+            <td><input name="field_name[]" maxlength="60" value="<%= f.name || '' %>" placeholder="date"></td>
+            <td><select name="field_type[]"><% FIELD_TYPES.forEach(function (t) { %><option <%= f.type === t ? 'selected' : '' %>><%= t %></option><% }) %></select></td>
+            <td><input name="field_desc[]" maxlength="200" value="<%= f.description || '' %>" placeholder="What this column means"></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <button type="button" class="btn btn-ghost btn-small" id="add-field">+ Add field</button>
+    <label>Free public sample <span class="muted">(a few anonymised rows)</span>
+      <textarea name="sample" rows="4" maxlength="5000" class="mono"><%= values.sample || '' %></textarea>
+    </label>
+  </fieldset>
+
+  <fieldset class="panel">
+    <legend>3 · Set your prices</legend>
+    <p class="muted">Leave a license empty to not offer it. The platform fee is deducted from each sale.</p>
+    <div class="row">
+      <label>Currency
+        <select name="currency"><% CURRENCIES.forEach(function (c) { %><option <%= values.currency === c ? 'selected' : '' %>><%= c %></option><% }) %></select>
+      </label>
+      <label>Sales limit <span class="muted">(optional)</span>
+        <input name="max_sales" type="number" min="1" value="<%= values.max_sales || '' %>" placeholder="unlimited">
+      </label>
+    </div>
+    <div class="price-grid">
+      <% Object.keys(LICENSES).forEach(function (key) {
+           var cents = values.prices && values.prices[key]; %>
+        <label class="price-card">
+          <strong><%= LICENSES[key].label %></strong>
+          <span class="muted"><%= LICENSES[key].description %></span>
+          <input name="price_<%= key %>" inputmode="decimal" placeholder="not offered"
+                 value="<%= cents !== undefined && cents !== null ? (cents / 100).toFixed(2) : '' %>">
+        </label>
+      <% }) %>
+    </div>
+  </fieldset>
+
+  <fieldset class="panel">
+    <legend>4 · Upload &amp; sign the data</legend>
+    <% if (listing && listing.data_sha256) { %>
+      <p class="ok">✓ Signed data on file: <%= h.formatBytes(listing.size_bytes) %> · SHA-256 <code class="wrap-anywhere"><%= listing.data_sha256 %></code></p>
+      <% if (listing.sales > 0) { %><p class="muted">Data is locked because this listing has been sold.</p><% } else { %><p class="muted">Upload a new file only if you want to replace it.</p><% } %>
+    <% } %>
+    <% if (!listing || listing.sales === 0) { %>
+      <div class="row">
+        <label>Format
+          <select name="data_format"><% DATA_FORMATS.forEach(function (f) { %><option <%= values.data_format === f ? 'selected' : '' %>><%= f %></option><% }) %></select>
+        </label>
+        <label>Data file <span class="muted">(max <%= h.formatBytes(maxUploadBytes) %>)</span>
+          <input type="file" name="datafile">
+        </label>
+      </div>
+      <label>…or paste the data <textarea name="data_text" rows="5" class="mono" placeholder="date,steps&#10;2025-01-01,8432"></textarea></label>
+      <label class="check"><input type="checkbox" name="consent" value="1">
+        I own this data or have the consent of every person it describes to sell it, and it complies with applicable privacy law (e.g. GDPR / nFADP).</label>
+      <p class="fine">The file is encrypted with AES-256-GCM before storage and signed with your personal Ed25519 key.</p>
+    <% } else { %>
+      <input type="hidden" name="data_format" value="<%= values.data_format %>">
+    <% } %>
+  </fieldset>
+
+  <div class="form-actions">
+    <button class="btn" type="submit"><%= listing ? 'Save changes' : 'Save listing' %></button>
+    <a class="btn btn-ghost" href="/dashboard">Cancel</a>
+  </div>
+</form>
+
+<%- include('partials/foot') %>

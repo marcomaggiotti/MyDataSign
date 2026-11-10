@@ -1,0 +1,38 @@
+<%- include('partials/head') %>
+
+<div class="page-head">
+  <div>
+    <h1>Order #<%= order.id %></h1>
+    <p class="muted"><a href="/listings/<%= order.listing_id %>"><%= order.title %></a> ·
+      <%= h.LICENSES[order.license].label %> license · <%= h.formatMoney(order.price_cents, order.currency) %></p>
+  </div>
+</div>
+
+<div class="two-col">
+  <section class="panel">
+    <h2>Download</h2>
+    <p>The <strong>signed bundle</strong> contains the data plus the seller's signature and public key, so you can prove where it came from.</p>
+    <p class="actions">
+      <a class="btn" href="/orders/<%= order.id %>/download">Signed bundle (.json)</a>
+      <a class="btn btn-ghost" href="/orders/<%= order.id %>/download?format=raw">Raw data (.<%= order.data_format %>)</a>
+    </p>
+    <p class="fine">Downloads are logged. Use is limited by your license: <%= h.LICENSES[order.license].description %></p>
+    <% if (downloads.length) { %>
+      <h3>Recent downloads</h3>
+      <ul class="list"><% downloads.forEach(function (d) { %><li class="muted"><%= d.created_at.toISOString().replace('T', ' ').slice(0, 16) %> UTC</li><% }) %></ul>
+    <% } %>
+  </section>
+  <section class="panel">
+    <h2>Provenance</h2>
+    <dl class="facts">
+      <dt>Seller</dt><dd><a href="/sellers/<%= order.seller_id %>"><%= order.seller_company || order.seller_name %></a></dd>
+      <dt>Topic · Area</dt><dd><%= order.topic_name %> · <%= order.area_name %></dd>
+      <dt>SHA-256</dt><dd><code class="wrap-anywhere"><%= order.data_sha256 %></code></dd>
+      <dt>Seller key</dt><dd><code><%= fingerprint %></code></dd>
+      <dt>Signature</dt><dd><code class="wrap-anywhere"><%= order.signature %></code></dd>
+    </dl>
+    <a href="/verify">Verify a bundle →</a>
+  </section>
+</div>
+
+<%- include('partials/foot') %>
